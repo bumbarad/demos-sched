@@ -6,7 +6,7 @@
 
 using namespace std;
 
-static string opt_demos_cg_name = "demos";
+static const string CGROUP_NAME_PREFIX = "demos-";
 
 static string pluralize(unsigned long count, const string &noun)
 {
@@ -56,7 +56,7 @@ static void print_help()
             // TODO: list supported policies and short descriptions, probably in a separate function
             "  [-p <POWER_POLICY>]   name of selected power management policy; if multiple instances of DEmOS\n"
             "                         are running in parallel, this parameter must not be passed to more than a single one\n"
-            "  [-g <CGROUP_NAME>]    name of root cgroups, default \"" << opt_demos_cg_name << "\"\n"
+            "  [-g <CGROUP_NAME>]    name of root cgroups, default \"" << CGROUP_NAME_PREFIX << "<process_pid>\"\n"
             "                         NOTE: this name must be unique for each running instance of DEmOS\n"
             "  [-m <WINDOW_MESSAGE>] print WINDOW_MESSAGE to stdout at the beginning of each window;\n"
             "                         this may be useful for external synchronization with scheduler windows\n"
@@ -84,6 +84,9 @@ int main(int argc, char *argv[])
     bool dump_config = false;
     bool systemd_run = false;
     std::optional<std::chrono::milliseconds> scheduler_timeout{};
+    // to support multiple instances of DEmOS running at once (primarily for testing),
+    //  default root cgroup name includes the scheduler process PID
+    string root_cgroup_name = CGROUP_NAME_PREFIX + to_string(getpid());
 
     while ((opt = getopt(argc, argv, "c:C:p:g:m:M:t:sdh")) != -1) {
         switch (opt) {
@@ -97,7 +100,7 @@ int main(int argc, char *argv[])
                 power_policy_name = optarg;
                 break;
             case 'g': // custom root cgroup name
-                opt_demos_cg_name = optarg;
+                root_cgroup_name = optarg;
                 break;
             case 'm': // window start sync message
                 window_sync_message = optarg;
@@ -163,7 +166,7 @@ int main(int argc, char *argv[])
         logger->trace("Creating top-level cgroups");
         Cgroup unified_root, freezer_root, cpuset_root;
         if (!cgroup_setup::create_toplevel_cgroups(
-              unified_root, freezer_root, cpuset_root, opt_demos_cg_name)) {
+              unified_root, freezer_root, cpuset_root, root_cgroup_name)) {
             // cgroup creation failed
             return 1;
         }
