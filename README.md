@@ -401,8 +401,9 @@ partitions:
 
 ![](./test_config/more_partitions.png)
 
-- if everything sucks run this script
-    ```
-    src/cleanup_crash.sh
-    ```
 
+
+If DEmOS crashes, run the following script to cleanup and hopefully get the system (cgroups and cpufreq) back to a working, consistent state:
+```
+sudo ./src/cleanup_crash.sh
+```
