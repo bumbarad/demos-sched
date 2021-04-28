@@ -55,7 +55,7 @@ Currently, the following `cgroup` hierarchies are required:
       -C <CONFIG>         inline configuration in YAML format
       -p <POWER_POLICY>   name of selected power management policy; if multiple instances of DEmOS
                            are running in parallel, this parameter must not be passed to more than a single one
-      -g <CGROUP_NAME>    name of root cgroups, default "demos"
+      -g <CGROUP_NAME>    name of root cgroups, default "demos-<process_pid>"
                            NOTE: this name must be unique for each running instance of DEmOS
       -m <WINDOW_MESSAGE> print WINDOW_MESSAGE to stdout at the beginning of each window;
                            this may be useful for external synchronization with scheduler windows
@@ -386,8 +386,9 @@ partitions:
 
 ![](./test_config/more_partitions.png)
 
-- if everything sucks run this script
-    ```
-    src/cleanup_crash.sh
-    ```
 
+
+If DEmOS crashes, run the following script to cleanup and hopefully get the system (cgroups and cpufreq) back to a working, consistent state:
+```
+sudo ./src/cleanup_crash.sh
+```
